@@ -6,6 +6,6 @@ module.exports = {
         return class_1;
     }()),
     getListOfValidSources: function () {
-        return ['New York Times', 'NPR'];
+        return ['bbc-news', 'bloomberg', 'buzzfeed', 'cnn', 'breibart-news', 'the-new-york-times', 'fox-news'];
     }
 };
