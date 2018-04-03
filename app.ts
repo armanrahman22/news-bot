@@ -2,7 +2,7 @@ const { BotFrameworkAdapter, ConversationState, MemoryStorage, MessageFactory } 
 const { createNumberPrompt, createChoicePrompt} = require('botbuilder-prompts');
 const { LuisRecognizer } = require('botbuilder-ai');
 const restify = require('restify');
-const addNewsSource = require('./addNewsSource');
+const newsSource = require('./newsSource');
 const exploreNews = require('./exploreNews');
 
 const newsSource = require('./newsSource');
@@ -51,16 +51,18 @@ server.post('/api/messages', (req, res) => {
                     // when new user 
                     case undefined:
                         state.topic = 'addSource'
+                        state.newsSources = [];
                         await choicePrompt.prompt(context, newsSource.getListOfValidSources(), "Choose a news source to add!");
                         break;
                     
                     // add a source
                     case 'addSource':
                         choicePrompt.recognize(context, newsSource.getListOfValidSources()).then((choice) => {
-                            state.newsSources = {};
-                            state.newsSources.push(new addNewsSource.NewsSource(choice)); 
+                            state.newsSources.push(new newsSource.NewsSource(choice)); 
                         });
                         state.topic = 'registered'
+                        await context.sendActivity("News source added! Now you can ask questions")
+                        break;
                     
                     // when user is registered
                     case 'registered':
@@ -76,6 +78,7 @@ server.post('/api/messages', (req, res) => {
                                 await context.sendActivity(helpMessage);
                                 break;
                         }
+                        break;
                     
                     default:
                         await context.sendActivity(helpMessage);
