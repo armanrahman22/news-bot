@@ -43,7 +43,7 @@ var exploreNews = require('./exploreNews');
 var newsSource = require('./newsSource');
 require('dotenv').load();
 var NewsAPI = require('newsapi');
-var newsapi = new NewsAPI(process.env.WALLSTREET_API_KEY);
+var newsapi = new NewsAPI(process.env.API_KEY);
 // Create server
 var server = restify.createServer();
 server.listen(process.env.port || process.env.PORT || 3978, function () {

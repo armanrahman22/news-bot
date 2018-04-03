@@ -8,7 +8,7 @@ const exploreNews = require('./exploreNews');
 const newsSource = require('./newsSource');
 require('dotenv').load();
 const NewsAPI = require('newsapi');
-const newsapi = new NewsAPI(process.env.WALLSTREET_API_KEY);
+const newsapi = new NewsAPI(process.env.API_KEY);
 
 // Create server
 let server = restify.createServer();
