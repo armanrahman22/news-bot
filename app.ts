@@ -3,7 +3,12 @@ const { createNumberPrompt, createChoicePrompt} = require('botbuilder-prompts');
 const { LuisRecognizer } = require('botbuilder-ai');
 const restify = require('restify');
 const addNewsSource = require('./addNewsSource');
+const exploreNews = require('./exploreNews');
+
 const newsSource = require('./newsSource');
+require('dotenv').load();
+const NewsAPI = require('newsapi');
+const newsapi = new NewsAPI(process.env.WALLSTREET_API_KEY);
 
 // Create server
 let server = restify.createServer();
@@ -34,7 +39,6 @@ const choicePrompt = createChoicePrompt();
 adapter.use(conversationState);
 adapter.use(model);
 
-
 // Listen for incoming requests 
 server.post('/api/messages', (req, res) => {
     // Route received request to adapter for processing
@@ -50,6 +54,9 @@ server.post('/api/messages', (req, res) => {
                     case 'registered':
                         switch (LuisRecognizer.topIntent(results)) {
                             case 'AddNewsSource':
+                                await addNewsSource.begin(context, results, state);
+                                break;
+                            case 'ExploreNews':
                                 await addNewsSource.begin(context, results, state);
                                 break;
                             default:

@@ -39,7 +39,11 @@ var _b = require('botbuilder-prompts'), createNumberPrompt = _b.createNumberProm
 var LuisRecognizer = require('botbuilder-ai').LuisRecognizer;
 var restify = require('restify');
 var addNewsSource = require('./addNewsSource');
+var exploreNews = require('./exploreNews');
 var newsSource = require('./newsSource');
+require('dotenv').load();
+var NewsAPI = require('newsapi');
+var newsapi = new NewsAPI(process.env.WALLSTREET_API_KEY);
 // Create server
 var server = restify.createServer();
 server.listen(process.env.port || process.env.PORT || 3978, function () {
@@ -73,7 +77,7 @@ server.post('/api/messages', function (req, res) {
                     switch (_a) {
                         case 'message': return [3 /*break*/, 1];
                     }
-                    return [3 /*break*/, 11];
+                    return [3 /*break*/, 13];
                 case 1:
                     results = model.get(context);
                     state = conversationState.get(context);
@@ -82,30 +86,35 @@ server.post('/api/messages', function (req, res) {
                         case undefined: return [3 /*break*/, 2];
                         case 'registered': return [3 /*break*/, 4];
                     }
-                    return [3 /*break*/, 9];
+                    return [3 /*break*/, 11];
                 case 2: return [4 /*yield*/, choicePrompt.prompt(context, newsSource.getListOfValidSources(), "Choose a news source to add!")];
                 case 3:
                     _d.sent();
-                    return [3 /*break*/, 11];
+                    return [3 /*break*/, 13];
                 case 4:
                     _c = LuisRecognizer.topIntent(results);
                     switch (_c) {
                         case 'AddNewsSource': return [3 /*break*/, 5];
+                        case 'ExploreNews': return [3 /*break*/, 7];
                     }
-                    return [3 /*break*/, 7];
+                    return [3 /*break*/, 9];
                 case 5: return [4 /*yield*/, addNewsSource.begin(context, results, state)];
                 case 6:
                     _d.sent();
-                    return [3 /*break*/, 9];
-                case 7: return [4 /*yield*/, context.sendActivity(helpMessage)];
+                    return [3 /*break*/, 11];
+                case 7: return [4 /*yield*/, addNewsSource.begin(context, results, state)];
                 case 8:
                     _d.sent();
-                    return [3 /*break*/, 9];
+                    return [3 /*break*/, 11];
                 case 9: return [4 /*yield*/, context.sendActivity(helpMessage)];
                 case 10:
                     _d.sent();
                     return [3 /*break*/, 11];
-                case 11: return [2 /*return*/];
+                case 11: return [4 /*yield*/, context.sendActivity(helpMessage)];
+                case 12:
+                    _d.sent();
+                    return [3 /*break*/, 13];
+                case 13: return [2 /*return*/];
             }
         });
     }); });
