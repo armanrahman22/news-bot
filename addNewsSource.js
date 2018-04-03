@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 var NewsSource = require('./newsSource');
-function begin(context, state) {
+function begin(results, state) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -52,7 +52,7 @@ function begin(context, state) {
                         state.currentSource = new NewsSource();
                     }
                     // Prompt for first field
-                    return [4 /*yield*/, nextField(context, state)];
+                    return [4 /*yield*/, nextField(results, state)];
                 case 1:
                     // Prompt for first field
                     _a.sent();
@@ -62,14 +62,14 @@ function begin(context, state) {
     });
 }
 exports.begin = begin;
-function routeReply(context, state) {
+function routeReply(results, state) {
     return __awaiter(this, void 0, void 0, function () {
-        var utterance;
+        var entity;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     console.log("routeReply");
-                    utterance = context.request.text.trim();
+                    entity = results.entities;
                     switch (state.prompt) {
                         case 'newsSource':
                             state.currentSource.source = utterance;
@@ -79,7 +79,7 @@ function routeReply(context, state) {
                             break;
                     }
                     // Prompt for next field
-                    return [4 /*yield*/, nextField(context, state)];
+                    return [4 /*yield*/, nextField(results, state)];
                 case 1:
                     // Prompt for next field
                     _a.sent();
@@ -89,7 +89,7 @@ function routeReply(context, state) {
     });
 }
 exports.routeReply = routeReply;
-function nextField(context, state) {
+function nextField(results, state) {
     return __awaiter(this, void 0, void 0, function () {
         var newsSource;
         return __generator(this, function (_a) {
@@ -99,15 +99,14 @@ function nextField(context, state) {
                     if (!(newsSource.source === undefined)) return [3 /*break*/, 2];
                     console.log("source");
                     state.prompt = 'newsSource';
-                    return [4 /*yield*/, context.sendActivity("Which news source would you like to add?")];
+                    return [4 /*yield*/, results.sendActivity("Which news source would you like to add?")];
                 case 1:
                     _a.sent();
                     return [3 /*break*/, 6];
                 case 2:
                     if (!(newsSource.subjects === undefined)) return [3 /*break*/, 4];
-                    console.log("subjects");
                     state.prompt = 'subjects';
-                    return [4 /*yield*/, context.sendActivity("What subjects would you like to follow?")];
+                    return [4 /*yield*/, results.sendActivity("What subjects would you like to follow?")];
                 case 3:
                     _a.sent();
                     return [3 /*break*/, 6];

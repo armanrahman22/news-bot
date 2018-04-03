@@ -34,8 +34,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 var _this = this;
-var _a = require('botbuilder'), BotFrameworkAdapter = _a.BotFrameworkAdapter, ConversationState = _a.ConversationState, MemoryStorage = _a.MemoryStorage;
+var _a = require('botbuilder'), BotFrameworkAdapter = _a.BotFrameworkAdapter, ConversationState = _a.ConversationState, MemoryStorage = _a.MemoryStorage, MessageFactory = _a.MessageFactory;
 var _b = require('botbuilder-prompts'), createNumberPrompt = _b.createNumberPrompt, createChoicePrompt = _b.createChoicePrompt;
+var LuisRecognizer = require('botbuilder-ai').LuisRecognizer;
 var restify = require('restify');
 var addNewsSource = require('./addNewsSource');
 // Create server
@@ -48,47 +49,62 @@ var adapter = new BotFrameworkAdapter({
     appId: process.env.MICROSOFT_APP_ID,
     appPassword: process.env.MICROSOFT_APP_PASSWORD
 });
+var model = new LuisRecognizer({
+    appId: 'b9ce968b-48fb-4d7c-9d9c-bd161a5a7215',
+    subscriptionKey: '962402c19f2c42d6a10e965d248ad3d9',
+    serviceEndpoint: 'https://westus.api.cognitive.microsoft.com'
+});
+var helpMessage = MessageFactory.text("Hi! I'm a simple news bot. \n \n    Start by adding news sources by saying for example 'add the New York Times to my sources'. \n\n    You can find stories by saying for example 'What happened in Syria recently?'. \n\n    You can find stories by specific journalists by saying for example 'Find recent articles by Jeremy Scahill'.");
 // Add conversation state middleware
 var conversationState = new ConversationState(new MemoryStorage());
 adapter.use(conversationState);
+adapter.use(model);
 // Listen for incoming requests 
 server.post('/api/messages', function (req, res) {
     // Route received request to adapter for processing
     adapter.processRequest(req, res, function (context) { return __awaiter(_this, void 0, void 0, function () {
-        var _a, utterance, state, _b;
-        return __generator(this, function (_c) {
-            switch (_c.label) {
+        var _a, results, state, _b, _c;
+        return __generator(this, function (_d) {
+            switch (_d.label) {
                 case 0:
                     _a = context.request.type;
                     switch (_a) {
                         case 'message': return [3 /*break*/, 1];
                     }
-                    return [3 /*break*/, 8];
+                    return [3 /*break*/, 12];
                 case 1:
-                    utterance = (context.request.text || '').trim().toLowerCase();
-                    console.log(utterance);
+                    results = model.get(context);
                     state = conversationState.get(context);
-                    if (!utterance.includes('add news source')) return [3 /*break*/, 3];
-                    return [4 /*yield*/, addNewsSource.begin(context, state)];
-                case 2:
-                    _c.sent();
-                    return [3 /*break*/, 8];
-                case 3:
-                    console.log(state.topic);
-                    _b = state.topic;
+                    if (!(state.topic === undefined)) return [3 /*break*/, 7];
+                    _b = LuisRecognizer.topIntent(results);
                     switch (_b) {
-                        case 'addNewsSource': return [3 /*break*/, 4];
+                        case 'AddNewsSource': return [3 /*break*/, 2];
                     }
+                    return [3 /*break*/, 4];
+                case 2: return [4 /*yield*/, addNewsSource.begin(results, state)];
+                case 3:
+                    _d.sent();
                     return [3 /*break*/, 6];
-                case 4: return [4 /*yield*/, addNewsSource.routeReply(context, state)];
+                case 4: return [4 /*yield*/, context.sendActivity(helpMessage)];
                 case 5:
-                    _c.sent();
-                    return [3 /*break*/, 8];
-                case 6: return [4 /*yield*/, context.sendActivity("Hi! I'm a simple alarm bot. Say \"add alarm\", \"delete alarm\", or \"show alarms\".")];
+                    _d.sent();
+                    return [3 /*break*/, 6];
+                case 6: return [3 /*break*/, 12];
                 case 7:
-                    _c.sent();
-                    return [3 /*break*/, 8];
-                case 8: return [2 /*return*/];
+                    _c = state.topic;
+                    switch (_c) {
+                        case 'AddNewsSource': return [3 /*break*/, 8];
+                    }
+                    return [3 /*break*/, 10];
+                case 8: return [4 /*yield*/, addNewsSource.routeReply(context, state)];
+                case 9:
+                    _d.sent();
+                    return [3 /*break*/, 12];
+                case 10: return [4 /*yield*/, context.sendActivity(helpMessage)];
+                case 11:
+                    _d.sent();
+                    return [3 /*break*/, 12];
+                case 12: return [2 /*return*/];
             }
         });
     }); });

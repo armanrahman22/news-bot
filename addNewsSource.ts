@@ -1,7 +1,7 @@
 
 const NewsSource = require('./newsSource')
 
-export async function begin(context, state) {
+export async function begin(results, state) {
     // Set topic and initialize news sources
     state.topic = 'addNewsSource';
     if (state.newsSources === undefined) {
@@ -15,13 +15,13 @@ export async function begin(context, state) {
     }
     
     // Prompt for first field
-    await nextField(context, state);
+    await nextField(results, state);
 }
 
-export async function routeReply(context, state) {
+export async function routeReply(results, state) {
     console.log("routeReply");
     // Handle users reply to prompt
-    const utterance = context.request.text.trim();
+    const entity = results.entities
     switch (state.prompt) {
         case 'newsSource':
             state.currentSource.source = utterance;
@@ -31,20 +31,19 @@ export async function routeReply(context, state) {
             break;
     }
     // Prompt for next field
-    await nextField(context, state);
+    await nextField(results, state);
 }
 
-async function nextField(context, state) {
+async function nextField(results, state) {
     // Prompt user for next missing field
     const newsSource = state.currentSource;
     if (newsSource.source === undefined) {
         console.log("source");
         state.prompt = 'newsSource';
-        await context.sendActivity(`Which news source would you like to add?`);
+        await results.sendActivity(`Which news source would you like to add?`);
     } else if (newsSource.subjects === undefined) {
-        console.log("subjects");
         state.prompt = 'subjects';
-        await context.sendActivity(`What subjects would you like to follow?`);
+        await results.sendActivity(`What subjects would you like to follow?`);
     } else {
         state.newsSources.push(newsSource);
 
