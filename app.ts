@@ -71,7 +71,7 @@ server.post('/api/messages', (req, res) => {
                                 state.topic = 'addSource'
                                 await choicePrompt.prompt(context, newsSource.getListOfValidSources(), "Choose a news source to add!");
                                 break;
-                            case 'ExploreNews':
+                            case 'Explore':
                                 await exploreNews.begin(context, results, state);
                                 break;
                             default:

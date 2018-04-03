@@ -108,7 +108,7 @@ server.post('/api/messages', function (req, res) {
                     _c = LuisRecognizer.topIntent(results);
                     switch (_c) {
                         case 'AddNewsSource': return [3 /*break*/, 7];
-                        case 'ExploreNews': return [3 /*break*/, 9];
+                        case 'Explore': return [3 /*break*/, 9];
                     }
                     return [3 /*break*/, 11];
                 case 7:

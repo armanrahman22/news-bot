@@ -36,16 +36,29 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 var NewsSource = require('./newsSource');
+var moment = require('moment');
+var regex = /^.{7}$/g;
 function begin(context, results, state) {
     return __awaiter(this, void 0, void 0, function () {
+        var entities, payload;
         return __generator(this, function (_a) {
             // Set topic and initialize news sources
             state.topic = 'exploreNews';
-            console.log(results.entities);
+            entities = results.entities;
+            console.log(moment(entities.builtin_datetimeV2_date[0]));
             payload = {
                 sources: state.newsSources.join(',')
             };
-            exploreHttpRequest(payload);
+            if (entities.builtin_datetimeV2_date !== undefined) {
+                payload['from'] = entities.builtin_datetimeV2_date;
+                payload['to'] = entities.builtin_datetimeV2_date;
+            }
+            if (entities.builtin_datetimeV2_daterange !== undefined) {
+                if ()
+                    ;
+            }
+            if (entities.Topic !== undefined) {
+            }
             return [2 /*return*/];
         });
     });
