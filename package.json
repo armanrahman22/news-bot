@@ -1,0 +1,25 @@
+{
+  "name": "news-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/armanrahman22/news-bot.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/armanrahman22/news-bot/issues"
+  },
+  "homepage": "https://github.com/armanrahman22/news-bot#readme",
+  "dependencies": {
+    "botbuilder": "^4.0.0-m2.2",
+    "botbuilder-ai": "^4.0.0-m2.5",
+    "botbuilder-prompts": "^4.0.0-m2.2",
+    "restify": "^7.1.0"
+  }
+}
