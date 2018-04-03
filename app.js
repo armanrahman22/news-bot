@@ -39,6 +39,7 @@ var _b = require('botbuilder-prompts'), createNumberPrompt = _b.createNumberProm
 var LuisRecognizer = require('botbuilder-ai').LuisRecognizer;
 var restify = require('restify');
 var addNewsSource = require('./addNewsSource');
+var newsSource = require('./newsSource');
 // Create server
 var server = restify.createServer();
 server.listen(process.env.port || process.env.PORT || 3978, function () {
@@ -57,6 +58,7 @@ var model = new LuisRecognizer({
 var helpMessage = MessageFactory.text("Hi! I'm a simple news bot. \n \n    Start by adding news sources by saying for example 'add the New York Times to my sources'. \n\n    You can find stories by saying for example 'What happened in Syria recently?'. \n\n    You can find stories by specific journalists by saying for example 'Find recent articles by Jeremy Scahill'.");
 // Add conversation state middleware
 var conversationState = new ConversationState(new MemoryStorage());
+var choicePrompt = createChoicePrompt();
 adapter.use(conversationState);
 adapter.use(model);
 // Listen for incoming requests 
@@ -71,40 +73,39 @@ server.post('/api/messages', function (req, res) {
                     switch (_a) {
                         case 'message': return [3 /*break*/, 1];
                     }
-                    return [3 /*break*/, 12];
+                    return [3 /*break*/, 11];
                 case 1:
                     results = model.get(context);
                     state = conversationState.get(context);
-                    if (!(state.topic === undefined)) return [3 /*break*/, 7];
-                    _b = LuisRecognizer.topIntent(results);
+                    _b = state.topic;
                     switch (_b) {
-                        case 'AddNewsSource': return [3 /*break*/, 2];
+                        case undefined: return [3 /*break*/, 2];
+                        case 'registered': return [3 /*break*/, 4];
                     }
-                    return [3 /*break*/, 4];
-                case 2: return [4 /*yield*/, addNewsSource.begin(results, state)];
+                    return [3 /*break*/, 9];
+                case 2: return [4 /*yield*/, choicePrompt.prompt(context, newsSource.getListOfValidSources(), "Choose a news source to add!")];
                 case 3:
                     _d.sent();
-                    return [3 /*break*/, 6];
-                case 4: return [4 /*yield*/, context.sendActivity(helpMessage)];
-                case 5:
-                    _d.sent();
-                    return [3 /*break*/, 6];
-                case 6: return [3 /*break*/, 12];
-                case 7:
-                    _c = state.topic;
+                    return [3 /*break*/, 11];
+                case 4:
+                    _c = LuisRecognizer.topIntent(results);
                     switch (_c) {
-                        case 'AddNewsSource': return [3 /*break*/, 8];
+                        case 'AddNewsSource': return [3 /*break*/, 5];
                     }
-                    return [3 /*break*/, 10];
-                case 8: return [4 /*yield*/, addNewsSource.routeReply(context, state)];
-                case 9:
+                    return [3 /*break*/, 7];
+                case 5: return [4 /*yield*/, addNewsSource.begin(context, results, state)];
+                case 6:
                     _d.sent();
-                    return [3 /*break*/, 12];
-                case 10: return [4 /*yield*/, context.sendActivity(helpMessage)];
-                case 11:
+                    return [3 /*break*/, 9];
+                case 7: return [4 /*yield*/, context.sendActivity(helpMessage)];
+                case 8:
                     _d.sent();
-                    return [3 /*break*/, 12];
-                case 12: return [2 /*return*/];
+                    return [3 /*break*/, 9];
+                case 9: return [4 /*yield*/, context.sendActivity(helpMessage)];
+                case 10:
+                    _d.sent();
+                    return [3 /*break*/, 11];
+                case 11: return [2 /*return*/];
             }
         });
     }); });

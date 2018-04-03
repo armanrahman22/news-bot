@@ -36,91 +36,24 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 var NewsSource = require('./newsSource');
-function begin(results, state) {
+function begin(context, results, state) {
     return __awaiter(this, void 0, void 0, function () {
+        var source;
         return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    // Set topic and initialize news sources
-                    state.topic = 'addNewsSource';
-                    if (state.newsSources === undefined) {
-                        console.log("newsSources");
-                        state.newsSources = {};
-                    }
-                    if (state.currentSource === undefined) {
-                        console.log("currentSource");
-                        state.currentSource = new NewsSource();
-                    }
-                    // Prompt for first field
-                    return [4 /*yield*/, nextField(results, state)];
-                case 1:
-                    // Prompt for first field
-                    _a.sent();
-                    return [2 /*return*/];
+            // Set topic and initialize news sources
+            state.topic = 'addNewsSource';
+            if (state.newsSources === undefined) {
+                console.log("newsSources");
+                state.newsSources = {};
             }
+            if (state.currentSource === undefined) {
+                console.log("currentSource");
+                source = results.entities.NewsOutlet[0];
+                console.log(source);
+                state.currentSource = new NewsSource();
+            }
+            return [2 /*return*/];
         });
     });
 }
 exports.begin = begin;
-function routeReply(results, state) {
-    return __awaiter(this, void 0, void 0, function () {
-        var entity;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    console.log("routeReply");
-                    entity = results.entities;
-                    switch (state.prompt) {
-                        case 'newsSource':
-                            state.currentSource.source = utterance;
-                            break;
-                        case 'subjects':
-                            state.currentSource.subjects = utterance;
-                            break;
-                    }
-                    // Prompt for next field
-                    return [4 /*yield*/, nextField(results, state)];
-                case 1:
-                    // Prompt for next field
-                    _a.sent();
-                    return [2 /*return*/];
-            }
-        });
-    });
-}
-exports.routeReply = routeReply;
-function nextField(results, state) {
-    return __awaiter(this, void 0, void 0, function () {
-        var newsSource;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    newsSource = state.currentSource;
-                    if (!(newsSource.source === undefined)) return [3 /*break*/, 2];
-                    console.log("source");
-                    state.prompt = 'newsSource';
-                    return [4 /*yield*/, results.sendActivity("Which news source would you like to add?")];
-                case 1:
-                    _a.sent();
-                    return [3 /*break*/, 6];
-                case 2:
-                    if (!(newsSource.subjects === undefined)) return [3 /*break*/, 4];
-                    state.prompt = 'subjects';
-                    return [4 /*yield*/, results.sendActivity("What subjects would you like to follow?")];
-                case 3:
-                    _a.sent();
-                    return [3 /*break*/, 6];
-                case 4:
-                    state.newsSources.push(newsSource);
-                    state.topic = undefined;
-                    state.newsSource = undefined;
-                    state.prompt = undefined;
-                    return [4 /*yield*/, context.sendActivity("Your news source \"" + newsSource.source + "\" has been added with subjects \"" + newsSource.subjects + "\".")];
-                case 5:
-                    _a.sent();
-                    _a.label = 6;
-                case 6: return [2 /*return*/];
-            }
-        });
-    });
-}

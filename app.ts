@@ -2,7 +2,8 @@ const { BotFrameworkAdapter, ConversationState, MemoryStorage, MessageFactory } 
 const { createNumberPrompt, createChoicePrompt} = require('botbuilder-prompts');
 const { LuisRecognizer } = require('botbuilder-ai');
 const restify = require('restify');
-const addNewsSource = require('./addNewsSource')
+const addNewsSource = require('./addNewsSource');
+const newsSource = require('./newsSource');
 
 // Create server
 let server = restify.createServer();
@@ -29,6 +30,7 @@ const helpMessage = MessageFactory.text(`Hi! I'm a simple news bot. \n
 
 // Add conversation state middleware
 const conversationState = new ConversationState(new MemoryStorage()); 
+const choicePrompt = createChoicePrompt();
 adapter.use(conversationState);
 adapter.use(model);
 
@@ -41,24 +43,22 @@ server.post('/api/messages', (req, res) => {
             case 'message' :
                 const results = model.get(context);
                 const state = conversationState.get(context);
-                if (state.topic === undefined){
-                    switch (LuisRecognizer.topIntent(results)) {
-                        case 'AddNewsSource':
-                            await addNewsSource.begin(results, state);
-                            break;
-                        default:
-                            await context.sendActivity(helpMessage);
-                            break;
-                    }    
-                } else {
-                    switch (state.topic) {
-                        case 'AddNewsSource':
-                            await addNewsSource.routeReply(context, state);
-                            break;
-                        default:
-                            await context.sendActivity(helpMessage);
-                            break;
-                    }
+                switch (state.topic){
+                    case undefined:
+                        await choicePrompt.prompt(context, newsSource.getListOfValidSources(), "Choose a news source to add!");
+                        break;
+                    case 'registered':
+                        switch (LuisRecognizer.topIntent(results)) {
+                            case 'AddNewsSource':
+                                await addNewsSource.begin(context, results, state);
+                                break;
+                            default:
+                                await context.sendActivity(helpMessage);
+                                break;
+                        }
+                    default:
+                        await context.sendActivity(helpMessage);
+                        break;    
                 }
         }
     });
