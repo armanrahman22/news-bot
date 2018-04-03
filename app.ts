@@ -48,21 +48,35 @@ server.post('/api/messages', (req, res) => {
                 const results = model.get(context);
                 const state = conversationState.get(context);
                 switch (state.topic){
+                    // when new user 
                     case undefined:
+                        state.topic = 'addSource'
                         await choicePrompt.prompt(context, newsSource.getListOfValidSources(), "Choose a news source to add!");
                         break;
+                    
+                    // add a source
+                    case 'addSource':
+                        choicePrompt.recognize(context, newsSource.getListOfValidSources()).then((choice) => {
+                            state.newsSources = {};
+                            state.newsSources.push(new addNewsSource.NewsSource(choice)); 
+                        });
+                        state.topic = 'registered'
+                    
+                    // when user is registered
                     case 'registered':
                         switch (LuisRecognizer.topIntent(results)) {
                             case 'AddNewsSource':
-                                await addNewsSource.begin(context, results, state);
+                                state.topic = 'addSource'
+                                await choicePrompt.prompt(context, newsSource.getListOfValidSources(), "Choose a news source to add!");
                                 break;
                             case 'ExploreNews':
-                                await addNewsSource.begin(context, results, state);
+                                await exploreNews.begin(context, results, state);
                                 break;
                             default:
                                 await context.sendActivity(helpMessage);
                                 break;
                         }
+                    
                     default:
                         await context.sendActivity(helpMessage);
                         break;    
