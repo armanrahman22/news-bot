@@ -37,39 +37,55 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 exports.__esModule = true;
 var NewsSource = require('./newsSource');
 var moment = require('moment');
-var regex = /^.{7}$/g;
-function begin(context, results, state) {
+var MONTH = new RegExp("^.{7}$");
+var YEAR = new RegExp("^.{4}$");
+function begin(context, results, state, newsapi) {
     return __awaiter(this, void 0, void 0, function () {
-        var entities, payload;
+        var entities, payload, range;
         return __generator(this, function (_a) {
             // Set topic and initialize news sources
             state.topic = 'exploreNews';
             entities = results.entities;
-            console.log(moment(entities.builtin_datetimeV2_date[0]));
             payload = {
                 sources: state.newsSources.join(',')
             };
+            console.log(payload.sources);
+            // get time range 
             if (entities.builtin_datetimeV2_date !== undefined) {
                 payload['from'] = entities.builtin_datetimeV2_date;
                 payload['to'] = entities.builtin_datetimeV2_date;
             }
-            if (entities.builtin_datetimeV2_daterange !== undefined) {
-                if ()
-                    ;
+            else if (entities.builtin_datetimeV2_daterange !== undefined) {
+                range = entities.builtin_datetimeV2_daterange[0];
+                if (MONTH.exec(range.toString()) != null) {
+                    payload['from'] = moment(range).startOf('month').format("YYYY-MM-DD");
+                    payload['to'] = moment(range).endOf('month').format("YYYY-MM-DD");
+                }
             }
+            else {
+                payload['from'] = moment().format("YYYY-MM-DD");
+                payload['to'] = moment().format("YYYY-MM-DD");
+            }
+            // get topic 
             if (entities.Topic !== undefined) {
+                payload['topic'] = entities.Topic;
             }
+            else {
+                payload['topic'] = '';
+            }
+            exploreHttpRequest(payload, newsapi);
             return [2 /*return*/];
         });
     });
 }
 exports.begin = begin;
-function exploreHttpRequest(payload) {
+function exploreHttpRequest(payload, newsapi) {
     console.log("in explore news");
     newsapi.v2.everything({
+        q: payload.topic,
         sources: payload.sources,
-        from: '2018-04-01',
-        to: '2018-04-03',
+        from: payload.from,
+        to: payload.to,
         language: 'en',
         sortBy: 'relevancy',
         page: 1

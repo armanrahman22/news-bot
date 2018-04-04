@@ -4,11 +4,11 @@ const { LuisRecognizer } = require('botbuilder-ai');
 const restify = require('restify');
 const newsSource = require('./newsSource');
 const exploreNews = require('./exploreNews');
-
-const newsSource = require('./newsSource');
-require('dotenv').load();
 const NewsAPI = require('newsapi');
+
+require('dotenv').load();
 const newsapi = new NewsAPI(process.env.API_KEY);
+
 
 // Create server
 let server = restify.createServer();
@@ -72,7 +72,7 @@ server.post('/api/messages', (req, res) => {
                                 await choicePrompt.prompt(context, newsSource.getListOfValidSources(), "Choose a news source to add!");
                                 break;
                             case 'Explore':
-                                await exploreNews.begin(context, results, state);
+                                await exploreNews.begin(context, results, state, newsapi);
                                 break;
                             default:
                                 await context.sendActivity(helpMessage);

@@ -40,9 +40,8 @@ var LuisRecognizer = require('botbuilder-ai').LuisRecognizer;
 var restify = require('restify');
 var newsSource = require('./newsSource');
 var exploreNews = require('./exploreNews');
-var newsSource = require('./newsSource');
-require('dotenv').load();
 var NewsAPI = require('newsapi');
+require('dotenv').load();
 var newsapi = new NewsAPI(process.env.API_KEY);
 // Create server
 var server = restify.createServer();
@@ -117,7 +116,7 @@ server.post('/api/messages', function (req, res) {
                 case 8:
                     _d.sent();
                     return [3 /*break*/, 13];
-                case 9: return [4 /*yield*/, exploreNews.begin(context, results, state_1)];
+                case 9: return [4 /*yield*/, exploreNews.begin(context, results, state_1, newsapi)];
                 case 10:
                     _d.sent();
                     return [3 /*break*/, 13];
