@@ -1,3 +1,4 @@
+"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -34,110 +35,109 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 var _this = this;
-var _a = require('botbuilder'), BotFrameworkAdapter = _a.BotFrameworkAdapter, ConversationState = _a.ConversationState, MemoryStorage = _a.MemoryStorage, MessageFactory = _a.MessageFactory;
-var _b = require('botbuilder-prompts'), createNumberPrompt = _b.createNumberPrompt, createChoicePrompt = _b.createChoicePrompt;
+exports.__esModule = true;
+var _a = require('botbuilder'), MemoryStorage = _a.MemoryStorage, MessageFactory = _a.MessageFactory;
 var LuisRecognizer = require('botbuilder-ai').LuisRecognizer;
-var restify = require('restify');
 var newsSource = require('./newsSource');
 var exploreNews = require('./exploreNews');
 var NewsAPI = require('newsapi');
+var querystring = require('querystring');
+var botbuilder_botbldr_1 = require("botbuilder-botbldr");
+var luis_1 = require("./luis");
+var addNewsSource_1 = require("./addNewsSource");
 require('dotenv').load();
 var newsapi = new NewsAPI(process.env.API_KEY);
-// Create server
-var server = restify.createServer();
-server.listen(process.env.port || process.env.PORT || 3978, function () {
-    console.log(server.name + " listening to " + server.url);
-});
-// Create adapter (it's ok for MICROSOFT_APP_ID and MICROSOFT_APP_PASSWORD to be blank for now)  
-var adapter = new BotFrameworkAdapter({
-    appId: process.env.MICROSOFT_APP_ID,
-    appPassword: process.env.MICROSOFT_APP_PASSWORD
-});
-var model = new LuisRecognizer({
-    appId: 'b9ce968b-48fb-4d7c-9d9c-bd161a5a7215',
-    subscriptionKey: '962402c19f2c42d6a10e965d248ad3d9',
-    serviceEndpoint: 'https://westus.api.cognitive.microsoft.com'
-});
-var helpMessage = MessageFactory.text("Hi! I'm a simple news bot. \n \n    Start by adding news sources by saying for example 'add the New York Times to my sources'. \n\n    You can find stories by saying for example 'What happened in Syria recently?'. \n\n    You can find stories by specific journalists by saying for example 'Find recent articles by Jeremy Scahill'.");
-// Add conversation state middleware
-var conversationState = new ConversationState(new MemoryStorage());
-var choicePrompt = createChoicePrompt();
-adapter.use(conversationState);
-adapter.use(model);
-// Listen for incoming requests 
-server.post('/api/messages', function (req, res) {
-    // Route received request to adapter for processing
-    adapter.processRequest(req, res, function (context) { return __awaiter(_this, void 0, void 0, function () {
-        var _a, results, state_1, _b, _c;
-        return __generator(this, function (_d) {
-            switch (_d.label) {
-                case 0:
-                    _a = context.request.type;
-                    switch (_a) {
-                        case 'message': return [3 /*break*/, 1];
-                    }
-                    return [3 /*break*/, 16];
-                case 1:
-                    results = model.get(context);
-                    state_1 = conversationState.get(context);
-                    _b = state_1.topic;
-                    switch (_b) {
-                        case undefined: return [3 /*break*/, 2];
-                        case 'addSource': return [3 /*break*/, 4];
-                        case 'registered': return [3 /*break*/, 6];
-                    }
-                    return [3 /*break*/, 14];
-                case 2:
-                    console.log('undefined');
-                    state_1.topic = 'addSource';
-                    state_1.newsSources = [];
-                    return [4 /*yield*/, choicePrompt.prompt(context, newsSource.getListOfValidSources(), "Choose a news source to add!")];
-                case 3:
-                    _d.sent();
-                    return [3 /*break*/, 16];
-                case 4:
-                    choicePrompt.recognize(context, newsSource.getListOfValidSources()).then(function (choice) {
-                        state_1.newsSources.push(choice.value);
-                    });
-                    state_1.topic = 'registered';
-                    return [4 /*yield*/, context.sendActivity("News source added! Now you can ask questions")];
-                case 5:
-                    _d.sent();
-                    return [3 /*break*/, 16];
-                case 6:
-                    console.log('registered: ' + LuisRecognizer.topIntent(results));
-                    _c = LuisRecognizer.topIntent(results);
-                    switch (_c) {
-                        case 'AddNewsSource': return [3 /*break*/, 7];
-                        case 'Explore': return [3 /*break*/, 9];
-                    }
-                    return [3 /*break*/, 11];
-                case 7:
-                    console.log('AddNewsSource');
-                    state_1.topic = 'addSource';
-                    return [4 /*yield*/, choicePrompt.prompt(context, newsSource.getListOfValidSources(), "Choose a news source to add!")];
-                case 8:
-                    _d.sent();
-                    return [3 /*break*/, 13];
-                case 9: return [4 /*yield*/, exploreNews.begin(context, results, state_1, newsapi)];
-                case 10:
-                    _d.sent();
-                    return [3 /*break*/, 13];
-                case 11:
-                    console.log('default: ' + LuisRecognizer.topIntent(results));
-                    return [4 /*yield*/, context.sendActivity(helpMessage)];
-                case 12:
-                    _d.sent();
-                    return [3 /*break*/, 13];
-                case 13: return [3 /*break*/, 16];
-                case 14:
-                    console.log('default: ' + state_1.topic);
-                    return [4 /*yield*/, context.sendActivity(helpMessage)];
-                case 15:
-                    _d.sent();
-                    return [3 /*break*/, 16];
-                case 16: return [2 /*return*/];
-            }
-        });
-    }); });
-});
+var helpMessage = MessageFactory.text("\n    Hi! I'm a news bot. \n \n    Start by adding news sources by saying for example 'add the New York Times to my sources'. \n\n    You can find stories by saying for example 'What happened in Syria recently?'. \n\n    You can find stories by specific journalists by saying for example 'Find recent articles by Jeremy Scahill'.");
+var bot = new botbuilder_botbldr_1.ServiceBot();
+bot.onRequest(function (context) { return __awaiter(_this, void 0, void 0, function () {
+    var convoState, userState, _a, _b, luisResults, _c, _d, _i, _e, member;
+    return __generator(this, function (_f) {
+        switch (_f.label) {
+            case 0:
+                convoState = context.conversationState;
+                userState = context.userState;
+                _a = context.request.type;
+                switch (_a) {
+                    case 'message': return [3 /*break*/, 1];
+                    case 'conversationUpdate': return [3 /*break*/, 22];
+                }
+                return [3 /*break*/, 28];
+            case 1:
+                _b = userState.registered;
+                switch (_b) {
+                    case undefined: return [3 /*break*/, 2];
+                    case true: return [3 /*break*/, 4];
+                }
+                return [3 /*break*/, 20];
+            case 2: return [4 /*yield*/, addNewsSource_1.registerUser(context)];
+            case 3:
+                _f.sent();
+                return [3 /*break*/, 22];
+            case 4: return [4 /*yield*/, luis_1.getLuisResults(context.request.text)];
+            case 5:
+                luisResults = _f.sent();
+                if (!(convoState.currentOperation !== undefined)) return [3 /*break*/, 9];
+                _c = convoState.currentOperation;
+                switch (_c) {
+                    case 'addingSource': return [3 /*break*/, 6];
+                }
+                return [3 /*break*/, 8];
+            case 6: return [4 /*yield*/, addNewsSource_1.addNewsSourceChoice(context)];
+            case 7:
+                _f.sent();
+                _f.label = 8;
+            case 8: return [3 /*break*/, 19];
+            case 9:
+                if (!(luisResults !== null)) return [3 /*break*/, 17];
+                _d = luisResults.topScoringIntent.intent;
+                switch (_d) {
+                    case 'AddNewsSource': return [3 /*break*/, 10];
+                    case 'Explore': return [3 /*break*/, 12];
+                }
+                return [3 /*break*/, 14];
+            case 10: return [4 /*yield*/, addNewsSource_1.addNewsSourceLuis(context, luisResults)];
+            case 11:
+                _f.sent();
+                return [3 /*break*/, 16];
+            case 12: return [4 /*yield*/, exploreNews.begin(context, luisResults, convoState, newsapi)];
+            case 13:
+                _f.sent();
+                return [3 /*break*/, 16];
+            case 14: return [4 /*yield*/, context.sendActivity(helpMessage)];
+            case 15:
+                _f.sent();
+                return [3 /*break*/, 16];
+            case 16: return [3 /*break*/, 19];
+            case 17: return [4 /*yield*/, context.sendActivity(helpMessage)];
+            case 18:
+                _f.sent();
+                _f.label = 19;
+            case 19: return [3 /*break*/, 22];
+            case 20: return [4 /*yield*/, context.sendActivity(helpMessage)];
+            case 21:
+                _f.sent();
+                return [3 /*break*/, 22];
+            case 22:
+                if (!(context.request.membersAdded !== undefined)) return [3 /*break*/, 27];
+                _i = 0, _e = context.request.membersAdded;
+                _f.label = 23;
+            case 23:
+                if (!(_i < _e.length)) return [3 /*break*/, 27];
+                member = _e[_i];
+                if (!(member.id !== context.request.recipient.id)) return [3 /*break*/, 26];
+                if (!(userState.registered === undefined)) return [3 /*break*/, 25];
+                return [4 /*yield*/, addNewsSource_1.registerUser(context)];
+            case 24:
+                _f.sent();
+                return [3 /*break*/, 26];
+            case 25:
+                userState.registered === undefined;
+                _f.label = 26;
+            case 26:
+                _i++;
+                return [3 /*break*/, 23];
+            case 27: return [3 /*break*/, 28];
+            case 28: return [2 /*return*/];
+        }
+    });
+}); });

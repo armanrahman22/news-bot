@@ -95,9 +95,8 @@ async function exploreAllHttpRequest(payload, newsapi, context) {
 async function displayArticles(context, response) {
   let articleList = [];  
 
-  for (let article in response.articles) {
-    let obj = response.articles[article];
-    articleList.push(CardFactory.heroCard(obj.title,[obj.urlToImage], [{ type: ActionTypes.openUrl, value: obj.url, title: "Click to view article"}]))
+  for (let article of response.articles) {
+    articleList.push(CardFactory.heroCard(article.title,[article.urlToImage], [{ type: ActionTypes.openUrl, value: article.url, title: "Click to view article"}]))
   }
 
   if (articleList.length > 0){

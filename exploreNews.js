@@ -170,25 +170,25 @@ function exploreAllHttpRequest(payload, newsapi, context) {
 }
 function displayArticles(context, response) {
     return __awaiter(this, void 0, void 0, function () {
-        var articleList, article, obj, messageWithCarouselOfCards;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var articleList, _i, _a, article, messageWithCarouselOfCards;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
                     articleList = [];
-                    for (article in response.articles) {
-                        obj = response.articles[article];
-                        articleList.push(CardFactory.heroCard(obj.title, [obj.urlToImage], [{ type: ActionTypes.openUrl, value: obj.url, title: "Click to view article" }]));
+                    for (_i = 0, _a = response.articles; _i < _a.length; _i++) {
+                        article = _a[_i];
+                        articleList.push(CardFactory.heroCard(article.title, [article.urlToImage], [{ type: ActionTypes.openUrl, value: article.url, title: "Click to view article" }]));
                     }
                     if (!(articleList.length > 0)) return [3 /*break*/, 2];
                     messageWithCarouselOfCards = MessageFactory.list(articleList);
                     return [4 /*yield*/, context.sendActivity(messageWithCarouselOfCards)];
                 case 1:
-                    _a.sent();
+                    _b.sent();
                     return [3 /*break*/, 4];
                 case 2: return [4 /*yield*/, context.sendActivity("We couldn't find any articles from these sources.")];
                 case 3:
-                    _a.sent();
-                    _a.label = 4;
+                    _b.sent();
+                    _b.label = 4;
                 case 4: return [2 /*return*/];
             }
         });
