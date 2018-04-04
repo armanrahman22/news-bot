@@ -96,7 +96,7 @@ server.post('/api/messages', function (req, res) {
                     return [3 /*break*/, 16];
                 case 4:
                     choicePrompt.recognize(context, newsSource.getListOfValidSources()).then(function (choice) {
-                        state_1.newsSources.push(new newsSource.NewsSource(choice));
+                        state_1.newsSources.push(choice.value);
                     });
                     state_1.topic = 'registered';
                     return [4 /*yield*/, context.sendActivity("News source added! Now you can ask questions")];

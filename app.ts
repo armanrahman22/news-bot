@@ -58,7 +58,7 @@ server.post('/api/messages', (req, res) => {
                     // add a source
                     case 'addSource':
                         choicePrompt.recognize(context, newsSource.getListOfValidSources()).then((choice) => {
-                            state.newsSources.push(new newsSource.NewsSource(choice)); 
+                            state.newsSources.push(choice.value); 
                         });
                         state.topic = 'registered'
                         await context.sendActivity("News source added! Now you can ask questions")

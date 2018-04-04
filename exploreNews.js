@@ -35,6 +35,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
+var _a = require('botbuilder'), MessageFactory = _a.MessageFactory, CardFactory = _a.CardFactory;
 var NewsSource = require('./newsSource');
 var moment = require('moment');
 var MONTH = new RegExp("^.{7}$");
@@ -47,9 +48,15 @@ function begin(context, results, state, newsapi) {
             state.topic = 'exploreNews';
             entities = results.entities;
             payload = {
-                sources: state.newsSources.join(',')
+                sources: state.newsSources.join()
             };
-            console.log(payload.sources);
+            // get topic 
+            if (entities.Topic !== undefined) {
+                payload['topic'] = entities.Topic[0];
+            }
+            else {
+                payload['topic'] = '';
+            }
             // get time range 
             if (entities.builtin_datetimeV2_date !== undefined) {
                 payload['from'] = entities.builtin_datetimeV2_date;
@@ -66,36 +73,42 @@ function begin(context, results, state, newsapi) {
                 payload['from'] = moment().format("YYYY-MM-DD");
                 payload['to'] = moment().format("YYYY-MM-DD");
             }
-            // get topic 
-            if (entities.Topic !== undefined) {
-                payload['topic'] = entities.Topic;
-            }
-            else {
-                payload['topic'] = '';
-            }
-            exploreHttpRequest(payload, newsapi);
+            exploreHttpRequest(payload, newsapi, context);
             return [2 /*return*/];
         });
     });
 }
 exports.begin = begin;
-function exploreHttpRequest(payload, newsapi) {
-    console.log("in explore news");
-    newsapi.v2.everything({
-        q: payload.topic,
-        sources: payload.sources,
-        from: payload.from,
-        to: payload.to,
-        language: 'en',
-        sortBy: 'relevancy',
-        page: 1
-    }).then(function (response) {
-        console.log(response);
-        /*
-          {
-            status: "ok",
-            articles: [...]
-          }
-        */
+function exploreHttpRequest(payload, newsapi, context) {
+    return __awaiter(this, void 0, void 0, function () {
+        var response, basicMessage;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, newsapi.v2.everything({
+                        q: payload.topic,
+                        sources: payload.sources,
+                        from: payload.from,
+                        to: payload.to,
+                        language: 'en',
+                        sortBy: 'relevancy',
+                        page: 1
+                    })];
+                case 1:
+                    response = _a.sent();
+                    console.log(response.articles);
+                    basicMessage = MessageFactory.text('Greetings from example message');
+                    return [4 /*yield*/, context.sendActivity(basicMessage)
+                        /*
+                          {
+                            status: "ok",
+                            articles: [...]
+                          }
+                        */
+                    ];
+                case 2:
+                    _a.sent();
+                    return [2 /*return*/];
+            }
+        });
     });
 }

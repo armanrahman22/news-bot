@@ -1,3 +1,5 @@
+const {MessageFactory, CardFactory} = require('botbuilder');
+
 const NewsSource = require('./newsSource');
 const moment = require('moment');
 
@@ -9,12 +11,19 @@ export async function begin(context, results, state, newsapi) {
     // Set topic and initialize news sources
     state.topic = 'exploreNews';
     let entities = results.entities;
-
+    
     // get sources 
+    
     let payload = {
-      sources: state.newsSources.join(',')
+      sources: state.newsSources.join(),
     }
-    console.log(payload.sources);
+
+    // get topic 
+    if (entities.Topic !== undefined) {
+      payload['topic'] = entities.Topic[0];
+    } else {
+      payload['topic'] = ''
+    }
 
     // get time range 
     if (entities.builtin_datetimeV2_date !== undefined) {
@@ -30,20 +39,12 @@ export async function begin(context, results, state, newsapi) {
       payload['from'] = moment().format("YYYY-MM-DD");
       payload['to'] = moment().format("YYYY-MM-DD");
     }
-
-    // get topic 
-    if (entities.Topic !== undefined) {
-      payload['topic'] = entities.Topic;
-    } else {
-      payload['topic'] = ''
-    }
     
-    exploreHttpRequest(payload, newsapi);
+    exploreHttpRequest(payload, newsapi, context);
 }
 
-function exploreHttpRequest(payload, newsapi) {
-    console.log("in explore news");
-    newsapi.v2.everything({
+async function exploreHttpRequest(payload, newsapi, context) {
+    const response = await newsapi.v2.everything({
         q: payload.topic,
         sources: payload.sources, //'bbc-news,the-verge',
         from: payload.from,
@@ -51,13 +52,17 @@ function exploreHttpRequest(payload, newsapi) {
         language: 'en',
         sortBy: 'relevancy',
         page: 1
-      }).then(response => {
-        console.log(response);
+      });
+
+      console.log(response.articles);
+
+      const basicMessage = MessageFactory.text('Greetings from example message');
+      await context.sendActivity(basicMessage)
+
         /*
           {
             status: "ok",
             articles: [...]
           }
         */
-      });    
 }
