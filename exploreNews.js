@@ -42,20 +42,32 @@ var MONTH = new RegExp("^.{7}$");
 var YEAR = new RegExp("^.{4}$");
 function begin(context, results, state, newsapi) {
     return __awaiter(this, void 0, void 0, function () {
-        var entities, payload, range;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var entities, payload, initiatingSearchMessage, range, _a;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
                     entities = results.entities;
+                    console.log(entities);
                     payload = {
                         sources: state.newsSources.join()
                     };
+                    initiatingSearchMessage = "";
                     // get topic 
                     if (entities.Topic !== undefined) {
                         payload['topic'] = entities.Topic[0];
+                        // list the sources we are searching 
+                        initiatingSearchMessage = "Searching for articles about \"" + payload['topic'] + "\" from " + payload['sources'] + " ...";
                     }
                     else {
                         payload['topic'] = '';
+                    }
+                    // get section 
+                    if (entities.RegexSection !== undefined) {
+                        payload['section'] = entities.RegexSection[0][0];
+                        initiatingSearchMessage = "Searching for articles in all sources' \"" + payload['section'] + "\" sections ...";
+                    }
+                    else {
+                        payload['section'] = '';
                     }
                     // get time range 
                     if (entities.builtin_datetimeV2_date !== undefined) {
@@ -73,28 +85,77 @@ function begin(context, results, state, newsapi) {
                         payload['from'] = moment().format("YYYY-MM-DD");
                         payload['to'] = moment().format("YYYY-MM-DD");
                     }
-                    return [4 /*yield*/, exploreHttpRequest(payload, newsapi, context)];
+                    if (!(payload['section'] !== '' ||
+                        payload['topic'] !== '')) return [3 /*break*/, 6];
+                    return [4 /*yield*/, context.sendActivity(initiatingSearchMessage)];
                 case 1:
+                    _b.sent();
+                    if (!(payload['section'] !== '')) return [3 /*break*/, 3];
+                    return [4 /*yield*/, exploreTopHttpRequest(payload, newsapi, context)];
+                case 2:
+                    _a = _b.sent();
+                    return [3 /*break*/, 5];
+                case 3: return [4 /*yield*/, exploreAllHttpRequest(payload, newsapi, context)];
+                case 4:
+                    _a = _b.sent();
+                    _b.label = 5;
+                case 5:
+                    _a;
+                    return [3 /*break*/, 9];
+                case 6:
+                    initiatingSearchMessage = "Searcing for articles between " + payload['from'] + " and " + payload['to'] + " ... ";
+                    return [4 /*yield*/, context.sendActivity(initiatingSearchMessage)];
+                case 7:
+                    _b.sent();
+                    return [4 /*yield*/, exploreAllHttpRequest(payload, newsapi, context)];
+                case 8:
+                    _b.sent();
+                    _b.label = 9;
+                case 9: return [2 /*return*/];
+            }
+        });
+    });
+}
+exports.begin = begin;
+function exploreTopHttpRequest(payload, newsapi, context) {
+    return __awaiter(this, void 0, void 0, function () {
+        var response;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, newsapi.v2.topHeadlines({
+                        //q: encodeURIComponent(payload.topic),
+                        category: payload.section,
+                        from: payload.from,
+                        to: payload.to,
+                        country: 'us',
+                        language: 'en',
+                        sortBy: 'relevancy',
+                        pageSize: 1,
+                        page: 1
+                    })];
+                case 1:
+                    response = _a.sent();
+                    return [4 /*yield*/, displayArticles(context, response)];
+                case 2:
                     _a.sent();
                     return [2 /*return*/];
             }
         });
     });
 }
-exports.begin = begin;
-function exploreHttpRequest(payload, newsapi, context) {
+function exploreAllHttpRequest(payload, newsapi, context) {
     return __awaiter(this, void 0, void 0, function () {
         var response;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0: return [4 /*yield*/, newsapi.v2.everything({
-                        q: '+' + payload.topic,
+                        q: encodeURIComponent(payload.topic),
                         sources: payload.sources,
                         from: payload.from,
                         to: payload.to,
                         language: 'en',
                         sortBy: 'relevancy',
-                        pageSize: 10,
+                        pageSize: 1,
                         page: 1
                     })];
                 case 1:
@@ -118,11 +179,17 @@ function displayArticles(context, response) {
                         obj = response.articles[article];
                         articleList.push(CardFactory.heroCard(obj.title, [obj.urlToImage], [{ type: ActionTypes.openUrl, value: obj.url, title: "Click to view article" }]));
                     }
+                    if (!(articleList.length > 0)) return [3 /*break*/, 2];
                     messageWithCarouselOfCards = MessageFactory.list(articleList);
                     return [4 /*yield*/, context.sendActivity(messageWithCarouselOfCards)];
                 case 1:
                     _a.sent();
-                    return [2 /*return*/];
+                    return [3 /*break*/, 4];
+                case 2: return [4 /*yield*/, context.sendActivity("We couldn't find any articles from these sources.")];
+                case 3:
+                    _a.sent();
+                    _a.label = 4;
+                case 4: return [2 /*return*/];
             }
         });
     });
