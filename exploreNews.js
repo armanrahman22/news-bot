@@ -35,7 +35,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-var _a = require('botbuilder'), MessageFactory = _a.MessageFactory, CardFactory = _a.CardFactory;
+var _a = require('botbuilder'), MessageFactory = _a.MessageFactory, CardFactory = _a.CardFactory, CardAction = _a.CardAction, ActionTypes = _a.ActionTypes;
 var NewsSource = require('./newsSource');
 var moment = require('moment');
 var MONTH = new RegExp("^.{7}$");
@@ -44,44 +44,49 @@ function begin(context, results, state, newsapi) {
     return __awaiter(this, void 0, void 0, function () {
         var entities, payload, range;
         return __generator(this, function (_a) {
-            // Set topic and initialize news sources
-            state.topic = 'exploreNews';
-            entities = results.entities;
-            payload = {
-                sources: state.newsSources.join()
-            };
-            // get topic 
-            if (entities.Topic !== undefined) {
-                payload['topic'] = entities.Topic[0];
+            switch (_a.label) {
+                case 0:
+                    // Set topic and initialize news sources
+                    state.topic = 'exploreNews';
+                    entities = results.entities;
+                    payload = {
+                        sources: state.newsSources.join()
+                    };
+                    // get topic 
+                    if (entities.Topic !== undefined) {
+                        payload['topic'] = entities.Topic[0];
+                    }
+                    else {
+                        payload['topic'] = '';
+                    }
+                    // get time range 
+                    if (entities.builtin_datetimeV2_date !== undefined) {
+                        payload['from'] = entities.builtin_datetimeV2_date;
+                        payload['to'] = entities.builtin_datetimeV2_date;
+                    }
+                    else if (entities.builtin_datetimeV2_daterange !== undefined) {
+                        range = entities.builtin_datetimeV2_daterange[0];
+                        if (MONTH.exec(range.toString()) != null) {
+                            payload['from'] = moment(range).startOf('month').format("YYYY-MM-DD");
+                            payload['to'] = moment(range).endOf('month').format("YYYY-MM-DD");
+                        }
+                    }
+                    else {
+                        payload['from'] = moment().format("YYYY-MM-DD");
+                        payload['to'] = moment().format("YYYY-MM-DD");
+                    }
+                    return [4 /*yield*/, exploreHttpRequest(payload, newsapi, context)];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/];
             }
-            else {
-                payload['topic'] = '';
-            }
-            // get time range 
-            if (entities.builtin_datetimeV2_date !== undefined) {
-                payload['from'] = entities.builtin_datetimeV2_date;
-                payload['to'] = entities.builtin_datetimeV2_date;
-            }
-            else if (entities.builtin_datetimeV2_daterange !== undefined) {
-                range = entities.builtin_datetimeV2_daterange[0];
-                if (MONTH.exec(range.toString()) != null) {
-                    payload['from'] = moment(range).startOf('month').format("YYYY-MM-DD");
-                    payload['to'] = moment(range).endOf('month').format("YYYY-MM-DD");
-                }
-            }
-            else {
-                payload['from'] = moment().format("YYYY-MM-DD");
-                payload['to'] = moment().format("YYYY-MM-DD");
-            }
-            exploreHttpRequest(payload, newsapi, context);
-            return [2 /*return*/];
         });
     });
 }
 exports.begin = begin;
 function exploreHttpRequest(payload, newsapi, context) {
     return __awaiter(this, void 0, void 0, function () {
-        var response, basicMessage;
+        var response;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0: return [4 /*yield*/, newsapi.v2.everything({
@@ -91,21 +96,33 @@ function exploreHttpRequest(payload, newsapi, context) {
                         to: payload.to,
                         language: 'en',
                         sortBy: 'relevancy',
+                        pageSize: 3,
                         page: 1
                     })];
                 case 1:
                     response = _a.sent();
-                    console.log(response.articles);
-                    basicMessage = MessageFactory.text('Greetings from example message');
-                    return [4 /*yield*/, context.sendActivity(basicMessage)
-                        /*
-                          {
-                            status: "ok",
-                            articles: [...]
-                          }
-                        */
-                    ];
+                    return [4 /*yield*/, displayArticles(context, response)];
                 case 2:
+                    _a.sent();
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+function displayArticles(context, response) {
+    return __awaiter(this, void 0, void 0, function () {
+        var articleList, article, obj, messageWithCarouselOfCards;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    articleList = [];
+                    for (article in response.articles) {
+                        obj = response.articles[article];
+                        articleList.push(CardFactory.heroCard(obj.title, [obj.urlToImage], [{ type: ActionTypes.openUrl, value: obj.url.toString(), title: "Click to view article" }]));
+                    }
+                    messageWithCarouselOfCards = MessageFactory.list(articleList);
+                    return [4 /*yield*/, context.sendActivity(messageWithCarouselOfCards)];
+                case 1:
                     _a.sent();
                     return [2 /*return*/];
             }
