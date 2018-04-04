@@ -46,8 +46,6 @@ function begin(context, results, state, newsapi) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    // Set topic and initialize news sources
-                    state.topic = 'exploreNews';
                     entities = results.entities;
                     payload = {
                         sources: state.newsSources.join()
@@ -90,13 +88,13 @@ function exploreHttpRequest(payload, newsapi, context) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0: return [4 /*yield*/, newsapi.v2.everything({
-                        q: payload.topic,
+                        q: '+' + payload.topic,
                         sources: payload.sources,
                         from: payload.from,
                         to: payload.to,
                         language: 'en',
                         sortBy: 'relevancy',
-                        pageSize: 3,
+                        pageSize: 10,
                         page: 1
                     })];
                 case 1:
@@ -118,7 +116,7 @@ function displayArticles(context, response) {
                     articleList = [];
                     for (article in response.articles) {
                         obj = response.articles[article];
-                        articleList.push(CardFactory.heroCard(obj.title, [obj.urlToImage], [{ type: ActionTypes.openUrl, value: obj.url.toString(), title: "Click to view article" }]));
+                        articleList.push(CardFactory.heroCard(obj.title, [obj.urlToImage], [{ type: ActionTypes.openUrl, value: obj.url, title: "Click to view article" }]));
                     }
                     messageWithCarouselOfCards = MessageFactory.list(articleList);
                     return [4 /*yield*/, context.sendActivity(messageWithCarouselOfCards)];

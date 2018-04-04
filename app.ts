@@ -50,6 +50,7 @@ server.post('/api/messages', (req, res) => {
                 switch (state.topic){
                     // when new user 
                     case undefined:
+                        console.log('undefined');
                         state.topic = 'addSource'
                         state.newsSources = [];
                         await choicePrompt.prompt(context, newsSource.getListOfValidSources(), "Choose a news source to add!");
@@ -66,8 +67,10 @@ server.post('/api/messages', (req, res) => {
                     
                     // when user is registered
                     case 'registered':
+                        console.log('registered: ' + LuisRecognizer.topIntent(results));
                         switch (LuisRecognizer.topIntent(results)) {
                             case 'AddNewsSource':
+                                console.log('AddNewsSource');
                                 state.topic = 'addSource'
                                 await choicePrompt.prompt(context, newsSource.getListOfValidSources(), "Choose a news source to add!");
                                 break;
@@ -75,12 +78,14 @@ server.post('/api/messages', (req, res) => {
                                 await exploreNews.begin(context, results, state, newsapi);
                                 break;
                             default:
+                                console.log('default: ' + LuisRecognizer.topIntent(results));
                                 await context.sendActivity(helpMessage);
                                 break;
                         }
                         break;
                     
                     default:
+                        console.log('default: ' + state.topic);
                         await context.sendActivity(helpMessage);
                         break;    
                 }

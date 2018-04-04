@@ -9,7 +9,6 @@ const YEAR = new RegExp("^.{4}$");
 
 export async function begin(context, results, state, newsapi) {
   // Set topic and initialize news sources
-  state.topic = 'exploreNews';
   let entities = results.entities;
   
   // get sources 
@@ -45,13 +44,13 @@ export async function begin(context, results, state, newsapi) {
 
 async function exploreHttpRequest(payload, newsapi, context) {
   const response = await newsapi.v2.everything({
-    q: payload.topic,
+    q: '+' + payload.topic,
     sources: payload.sources, //'bbc-news,the-verge',
     from: payload.from,
     to: payload.to,
     language: 'en',
     sortBy: 'relevancy',
-    pageSize:3,
+    pageSize:10,
     page: 1
   });
   await displayArticles(context, response);
@@ -62,7 +61,7 @@ async function displayArticles(context, response) {
 
   for (let article in response.articles) {
     let obj = response.articles[article];
-    articleList.push(CardFactory.heroCard(obj.title,[obj.urlToImage], [{ type: ActionTypes.openUrl, value: obj.url.toString(), title: "Click to view article"}]))
+    articleList.push(CardFactory.heroCard(obj.title,[obj.urlToImage], [{ type: ActionTypes.openUrl, value: obj.url, title: "Click to view article"}]))
   }
 
   let messageWithCarouselOfCards = MessageFactory.list(articleList);

@@ -88,6 +88,7 @@ server.post('/api/messages', function (req, res) {
                     }
                     return [3 /*break*/, 14];
                 case 2:
+                    console.log('undefined');
                     state_1.topic = 'addSource';
                     state_1.newsSources = [];
                     return [4 /*yield*/, choicePrompt.prompt(context, newsSource.getListOfValidSources(), "Choose a news source to add!")];
@@ -104,6 +105,7 @@ server.post('/api/messages', function (req, res) {
                     _d.sent();
                     return [3 /*break*/, 16];
                 case 6:
+                    console.log('registered: ' + LuisRecognizer.topIntent(results));
                     _c = LuisRecognizer.topIntent(results);
                     switch (_c) {
                         case 'AddNewsSource': return [3 /*break*/, 7];
@@ -111,6 +113,7 @@ server.post('/api/messages', function (req, res) {
                     }
                     return [3 /*break*/, 11];
                 case 7:
+                    console.log('AddNewsSource');
                     state_1.topic = 'addSource';
                     return [4 /*yield*/, choicePrompt.prompt(context, newsSource.getListOfValidSources(), "Choose a news source to add!")];
                 case 8:
@@ -120,12 +123,16 @@ server.post('/api/messages', function (req, res) {
                 case 10:
                     _d.sent();
                     return [3 /*break*/, 13];
-                case 11: return [4 /*yield*/, context.sendActivity(helpMessage)];
+                case 11:
+                    console.log('default: ' + LuisRecognizer.topIntent(results));
+                    return [4 /*yield*/, context.sendActivity(helpMessage)];
                 case 12:
                     _d.sent();
                     return [3 /*break*/, 13];
                 case 13: return [3 /*break*/, 16];
-                case 14: return [4 /*yield*/, context.sendActivity(helpMessage)];
+                case 14:
+                    console.log('default: ' + state_1.topic);
+                    return [4 /*yield*/, context.sendActivity(helpMessage)];
                 case 15:
                     _d.sent();
                     return [3 /*break*/, 16];
