@@ -29,3 +29,7 @@ export async function getLuisResults(utterance: string): Promise<LuisResult> {
     const data = await response.json();
     return {topScoringIntent: data.topScoringIntent, intents: data.intents, entities: data.entities};
 }
+
+export function getEntityOfType(luisResult: LuisResult, type: string) {
+    
+}

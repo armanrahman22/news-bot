@@ -67,3 +67,6 @@ function getLuisResults(utterance) {
     });
 }
 exports.getLuisResults = getLuisResults;
+function getEntityOfType(luisResult, type) {
+}
+exports.getEntityOfType = getEntityOfType;

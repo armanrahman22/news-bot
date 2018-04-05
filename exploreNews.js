@@ -40,16 +40,15 @@ var NewsSource = require('./newsSource');
 var moment = require('moment');
 var MONTH = new RegExp("^.{7}$");
 var YEAR = new RegExp("^.{4}$");
-function begin(context, results, state, newsapi) {
+function begin(context, results, newsapi) {
     return __awaiter(this, void 0, void 0, function () {
-        var entities, payload, initiatingSearchMessage, range, _a;
+        var entity, payload, initiatingSearchMessage, range, _a;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    entities = results.entities;
-                    console.log(entities);
+                    entity = results.entities[0];
                     payload = {
-                        sources: state.newsSources.join()
+                        sources: context.userState.newsSources.join()
                     };
                     initiatingSearchMessage = "";
                     // get topic 
@@ -85,8 +84,7 @@ function begin(context, results, state, newsapi) {
                         payload['from'] = moment().format("YYYY-MM-DD");
                         payload['to'] = moment().format("YYYY-MM-DD");
                     }
-                    if (!(payload['section'] !== '' ||
-                        payload['topic'] !== '')) return [3 /*break*/, 6];
+                    if (!(payload['section'] !== '' || payload['topic'] !== '')) return [3 /*break*/, 6];
                     return [4 /*yield*/, context.sendActivity(initiatingSearchMessage)];
                 case 1:
                     _b.sent();

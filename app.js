@@ -99,7 +99,7 @@ bot.onRequest(function (context) { return __awaiter(_this, void 0, void 0, funct
             case 11:
                 _f.sent();
                 return [3 /*break*/, 16];
-            case 12: return [4 /*yield*/, exploreNews.begin(context, luisResults, convoState, newsapi)];
+            case 12: return [4 /*yield*/, exploreNews.begin(context, luisResults, newsapi)];
             case 13:
                 _f.sent();
                 return [3 /*break*/, 16];

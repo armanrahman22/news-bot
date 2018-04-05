@@ -52,7 +52,7 @@ bot.onRequest(async context => {
                                 await addNewsSourceLuis(context, luisResults);
                                 break;
                             case 'Explore':
-                                await exploreNews.begin(context, luisResults, convoState, newsapi);
+                                await exploreNews.begin(context, luisResults, newsapi);
                                 break;
                             default:
                                 await context.sendActivity(helpMessage);

@@ -14,7 +14,7 @@ export function getFuzzySet(): string[] {
 
 export function getBestmatch(value: string) : string {
     let matches: [number, string][] = FUZZYSOURCES.get(value);
-    if(matches.length > 0){
+    if(matches.length > 0) {
         let bestMatch: string;
         let bestMatchValue: number = 0.0;
         for(let match of matches) {
