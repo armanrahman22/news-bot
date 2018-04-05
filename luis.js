@@ -67,6 +67,13 @@ function getLuisResults(utterance) {
     });
 }
 exports.getLuisResults = getLuisResults;
-function getEntityOfType(luisResult, type) {
+function getEntityOfType(luisResult, type, cutoff) {
+    for (var _i = 0, _a = luisResult.entities; _i < _a.length; _i++) {
+        var entity = _a[_i];
+        if (entity.type == type && entity.score > cutoff) {
+            return entity.entity;
+        }
+    }
+    return null;
 }
 exports.getEntityOfType = getEntityOfType;

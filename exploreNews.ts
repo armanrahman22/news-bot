@@ -1,6 +1,7 @@
 import { MyConversationState, MyUserState } from './app';
 import { StateContext } from 'botbuilder-botbldr';
-import {LuisResult} from './luis';
+import {LuisResult, getEntityOfType} from './luis';
+import {NewsAPI} from 'newsapi';
 
 const {MessageFactory, CardFactory, CardAction, ActionTypes} = require('botbuilder');
 
@@ -10,53 +11,68 @@ const moment = require('moment');
 const MONTH = new RegExp("^.{7}$");
 const YEAR = new RegExp("^.{4}$");
 
-export async function begin(context: StateContext<MyConversationState, MyUserState>, results: LuisResult, newsapi) {
-  // Set topic and initialize news sources
-  let entity = results.entities[0];
-  
+export interface payloadType {
+  sources: string;
+  topic: string;
+  section: string;
+  from: number;
+  to: number;
+}
+
+export interface articlesResponse {
+  articles: 
+    { source: [Object],
+      author: string,
+      title: string,
+      description: string,
+      url: string,
+      urlToImage: string,
+      publishedAt: string }[]
+}
+
+export async function begin(context: StateContext<MyConversationState, MyUserState>, results: LuisResult, newsapi: NewsAPI) {
+  let initiatingSearchMessage = ``;
+
   // get sources 
   let payload = {
     sources: context.userState.newsSources.join(),
+    topic: '',
+    section: '',
+    from: moment().format("YYYY-MM-DD"),
+    to: moment().format("YYYY-MM-DD")
   }
   
-  let initiatingSearchMessage = ``;
-  
   // get topic 
-  if (entities.Topic !== undefined) {
-    payload['topic'] = entities.Topic[0];
+  let topic = getEntityOfType(results, "Topic", 0.3);
+  if (topic !== null) {
+    payload['topic'] = topic;
     // list the sources we are searching 
     initiatingSearchMessage = `Searching for articles about "${payload['topic']}" from ${payload['sources']} ...`;
-  } else {
-    payload['topic'] = ''
   }
   
   // get section 
-  if (entities.RegexSection !== undefined) {
-    payload['section'] = entities.RegexSection[0][0];
+  let section = getEntityOfType(results, "RegexSection", 0.3);
+  if (section!== null) {
+    payload['section'] = section;
     initiatingSearchMessage = `Searching for articles in all sources' "${payload['section']}" sections ...`;
-  } else {
-    payload['section'] = ''
   }
   
   // get time range 
-  if (entities.builtin_datetimeV2_date !== undefined) {
-    payload['from'] = entities.builtin_datetimeV2_date;
-    payload['to'] = entities.builtin_datetimeV2_date;    
-  } else if (entities.builtin_datetimeV2_daterange !== undefined){
-    let range = entities.builtin_datetimeV2_daterange[0];
-    
-    if(MONTH.exec(range.toString())!= null){
-      payload['from'] = moment(range).startOf('month').format("YYYY-MM-DD");
-      payload['to'] = moment(range).endOf('month').format("YYYY-MM-DD");
+  let time = getEntityOfType(results, "builtin_datetimeV2_date", 0.3);
+  let timeRange = getEntityOfType(results, "builtin_datetimeV2_daterange", 0.3);
+  if (time !== null) {
+    payload['from'] = time;
+    payload['to'] = time;    
+  } else if (timeRange !== null){
+    if(MONTH.exec(timeRange.toString())!= null){
+      payload['from'] = moment(timeRange).startOf('month').format("YYYY-MM-DD");
+      payload['to'] = moment(timeRange).endOf('month').format("YYYY-MM-DD");
     }
-  } else {
-    payload['from'] = moment().format("YYYY-MM-DD");
-    payload['to'] = moment().format("YYYY-MM-DD");
   }
   
-  if (payload['section'] !=='' || payload['topic'] !=='') {
+  if (payload['section'] !== '' || payload['topic'] !== '') {
     await context.sendActivity(initiatingSearchMessage);
-    payload['section'] !=='' ? await exploreTopHttpRequest(payload, newsapi, context) 
+    payload['section'] !== '' ? await exploreTopHttpRequest(payload, newsapi, context) 
     : await exploreAllHttpRequest(payload, newsapi, context)
   } else {
     initiatingSearchMessage = `Searcing for articles between ${payload['from']} and ${payload['to']} ... `;
@@ -65,7 +81,7 @@ export async function begin(context: StateContext<MyConversationState, MyUserSta
   }
 }
 
-async function exploreTopHttpRequest(payload, newsapi, context) {
+async function exploreTopHttpRequest(payload: payloadType, newsapi: NewsAPI, context: StateContext<MyConversationState, MyUserState>) {
   const response = await newsapi.v2.topHeadlines({
     //q: encodeURIComponent(payload.topic),
     category: payload.section,
@@ -77,10 +93,10 @@ async function exploreTopHttpRequest(payload, newsapi, context) {
     pageSize:1,
     page: 1
   });
-  await displayArticles(context, response);
+  await displayArticles(context, response.articles);
 }
 
-async function exploreAllHttpRequest(payload, newsapi, context) {
+async function exploreAllHttpRequest(payload: payloadType, newsapi: NewsAPI, context: StateContext<MyConversationState, MyUserState>) {
   const response = await newsapi.v2.everything({
     q: encodeURIComponent(payload.topic),
     sources: payload.sources, //'bbc-news,the-verge',
@@ -91,13 +107,12 @@ async function exploreAllHttpRequest(payload, newsapi, context) {
     pageSize:1,
     page: 1
   });
-  await displayArticles(context, response);
+  await displayArticles(context, response.articles);
 }
 
-async function displayArticles(context, response) {
+async function displayArticles(context: StateContext<MyConversationState, MyUserState>, response: articlesResponse) {
   let articleList = [];  
-  
-  for (let article of response.articles) {
+  for (let article of response) {
     articleList.push(CardFactory.heroCard(article.title,[article.urlToImage], [{ type: ActionTypes.openUrl, value: article.url, title: "Click to view article"}]))
   }
   

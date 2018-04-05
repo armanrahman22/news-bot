@@ -6,7 +6,7 @@ var querystring = require('querystring');
 export interface LuisResult {
     topScoringIntent: {intent: string, score: number};
     intents: {intent: string, score: number}[];
-    entities: {entity: string, type: string, startIndex: number, endIndex: number, resolution: any}[];
+    entities: {entity: string, type: string, startIndex: number, endIndex: number, resolution: any, score: number}[];
 }
 
 export async function getLuisResults(utterance: string): Promise<LuisResult> {
@@ -30,6 +30,11 @@ export async function getLuisResults(utterance: string): Promise<LuisResult> {
     return {topScoringIntent: data.topScoringIntent, intents: data.intents, entities: data.entities};
 }
 
-export function getEntityOfType(luisResult: LuisResult, type: string) {
-    
+export function getEntityOfType(luisResult: LuisResult, type: string, cutoff: number): string {
+    for (let entity of luisResult.entities) {
+        if(entity.type == type && entity.score > cutoff) {
+            return entity.entity;
+        }
+    }
+    return null;
 }

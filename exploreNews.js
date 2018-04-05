@@ -35,6 +35,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
+var luis_1 = require("./luis");
 var _a = require('botbuilder'), MessageFactory = _a.MessageFactory, CardFactory = _a.CardFactory, CardAction = _a.CardAction, ActionTypes = _a.ActionTypes;
 var NewsSource = require('./newsSource');
 var moment = require('moment');
@@ -42,47 +43,40 @@ var MONTH = new RegExp("^.{7}$");
 var YEAR = new RegExp("^.{4}$");
 function begin(context, results, newsapi) {
     return __awaiter(this, void 0, void 0, function () {
-        var entity, payload, initiatingSearchMessage, range, _a;
+        var initiatingSearchMessage, payload, topic, section, time, timeRange, _a;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    entity = results.entities[0];
-                    payload = {
-                        sources: context.userState.newsSources.join()
-                    };
                     initiatingSearchMessage = "";
-                    // get topic 
-                    if (entities.Topic !== undefined) {
-                        payload['topic'] = entities.Topic[0];
+                    payload = {
+                        sources: context.userState.newsSources.join(),
+                        topic: '',
+                        section: '',
+                        from: moment().format("YYYY-MM-DD"),
+                        to: moment().format("YYYY-MM-DD")
+                    };
+                    topic = luis_1.getEntityOfType(results, "Topic", 0.3);
+                    if (topic !== null) {
+                        payload['topic'] = topic;
                         // list the sources we are searching 
                         initiatingSearchMessage = "Searching for articles about \"" + payload['topic'] + "\" from " + payload['sources'] + " ...";
                     }
-                    else {
-                        payload['topic'] = '';
-                    }
-                    // get section 
-                    if (entities.RegexSection !== undefined) {
-                        payload['section'] = entities.RegexSection[0][0];
+                    section = luis_1.getEntityOfType(results, "RegexSection", 0.3);
+                    if (section !== null) {
+                        payload['section'] = section;
                         initiatingSearchMessage = "Searching for articles in all sources' \"" + payload['section'] + "\" sections ...";
                     }
-                    else {
-                        payload['section'] = '';
+                    time = luis_1.getEntityOfType(results, "builtin_datetimeV2_date", 0.3);
+                    timeRange = luis_1.getEntityOfType(results, "builtin_datetimeV2_daterange", 0.3);
+                    if (time !== null) {
+                        payload['from'] = time;
+                        payload['to'] = time;
                     }
-                    // get time range 
-                    if (entities.builtin_datetimeV2_date !== undefined) {
-                        payload['from'] = entities.builtin_datetimeV2_date;
-                        payload['to'] = entities.builtin_datetimeV2_date;
-                    }
-                    else if (entities.builtin_datetimeV2_daterange !== undefined) {
-                        range = entities.builtin_datetimeV2_daterange[0];
-                        if (MONTH.exec(range.toString()) != null) {
-                            payload['from'] = moment(range).startOf('month').format("YYYY-MM-DD");
-                            payload['to'] = moment(range).endOf('month').format("YYYY-MM-DD");
+                    else if (timeRange !== null) {
+                        if (MONTH.exec(timeRange.toString()) != null) {
+                            payload['from'] = moment(timeRange).startOf('month').format("YYYY-MM-DD");
+                            payload['to'] = moment(timeRange).endOf('month').format("YYYY-MM-DD");
                         }
-                    }
-                    else {
-                        payload['from'] = moment().format("YYYY-MM-DD");
-                        payload['to'] = moment().format("YYYY-MM-DD");
                     }
                     if (!(payload['section'] !== '' || payload['topic'] !== '')) return [3 /*break*/, 6];
                     return [4 /*yield*/, context.sendActivity(initiatingSearchMessage)];
@@ -133,7 +127,7 @@ function exploreTopHttpRequest(payload, newsapi, context) {
                     })];
                 case 1:
                     response = _a.sent();
-                    return [4 /*yield*/, displayArticles(context, response)];
+                    return [4 /*yield*/, displayArticles(context, response.articles)];
                 case 2:
                     _a.sent();
                     return [2 /*return*/];
@@ -158,7 +152,7 @@ function exploreAllHttpRequest(payload, newsapi, context) {
                     })];
                 case 1:
                     response = _a.sent();
-                    return [4 /*yield*/, displayArticles(context, response)];
+                    return [4 /*yield*/, displayArticles(context, response.articles)];
                 case 2:
                     _a.sent();
                     return [2 /*return*/];
@@ -168,25 +162,25 @@ function exploreAllHttpRequest(payload, newsapi, context) {
 }
 function displayArticles(context, response) {
     return __awaiter(this, void 0, void 0, function () {
-        var articleList, _i, _a, article, messageWithCarouselOfCards;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
+        var articleList, _i, response_1, article, messageWithCarouselOfCards;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
                 case 0:
                     articleList = [];
-                    for (_i = 0, _a = response.articles; _i < _a.length; _i++) {
-                        article = _a[_i];
+                    for (_i = 0, response_1 = response; _i < response_1.length; _i++) {
+                        article = response_1[_i];
                         articleList.push(CardFactory.heroCard(article.title, [article.urlToImage], [{ type: ActionTypes.openUrl, value: article.url, title: "Click to view article" }]));
                     }
                     if (!(articleList.length > 0)) return [3 /*break*/, 2];
                     messageWithCarouselOfCards = MessageFactory.list(articleList);
                     return [4 /*yield*/, context.sendActivity(messageWithCarouselOfCards)];
                 case 1:
-                    _b.sent();
+                    _a.sent();
                     return [3 /*break*/, 4];
                 case 2: return [4 /*yield*/, context.sendActivity("We couldn't find any articles from these sources.")];
                 case 3:
-                    _b.sent();
-                    _b.label = 4;
+                    _a.sent();
+                    _a.label = 4;
                 case 4: return [2 /*return*/];
             }
         });
